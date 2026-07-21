@@ -1,266 +1,162 @@
-{\rtf1\ansi\ansicpg932\cocoartf2639
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset128 HiraginoSans-W3;\f2\fnil\fcharset0 LucidaGrande;
-}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>APEX GP — 鈴鹿サーキット</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Titillium+Web:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="gl"></canvas>
 
-\f0\fs24 \cf0 <!DOCTYPE html>\
-<html lang="ja">\
-<head>\
-<meta charset="UTF-8">\
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">\
-<title>APEX GP \'97 
-\f1 \'97\'e9\'8e\'ad\'83\'54\'81\'5b\'83\'4c\'83\'62\'83\'67
-\f0 </title>\
-<link rel="preconnect" href="https://fonts.googleapis.com">\
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Titillium+Web:wght@400;600;700;900&display=swap" rel="stylesheet">\
-<link rel="stylesheet" href="style.css">\
-</head>\
-<body>\
-<div id="app">\
-  <canvas id="gl"></canvas>\
-\
-  <div id="loading">\
-    <div class="spinner"></div>\
-    <div class="txt">CIRCUIT LOADING\'85</div>\
-  </div>\
-\
-  <div id="start" style="display:none;">\
-    <div class="start-card">\
-      <div class="brand"><span class="mark">APEX GRAND PRIX</span></div>\
-      <h1>
-\f1 \'97\'e9\'8e\'ad\'83\'54\'81\'5b\'83\'4c\'83\'62\'83\'67
-\f0 </h1>\
-      <div class="sub">
-\f1 \'83\'75\'83\'89\'83\'45\'83\'55\'82\'be\'82\'af\'82\'c5\'93\'ae\'82\'ad\'96\'7b\'8a\'69
-\f0  F1 
-\f1 \'83\'8c\'81\'5b\'83\'56\'83\'93\'83\'4f\'83\'56\'83\'7e\'83\'85\'83\'8c\'81\'5b\'83\'5e\'81\'5b
-\f0  \'97 
-\f1 \'83\'52\'83\'41\'83\'6f\'81\'5b\'83\'57\'83\'87\'83\'93
-\f0 </div>\
-\
-      <div class="grp">\
-        <div class="grp-label">
-\f1 \'83\'5a\'83\'62\'83\'56\'83\'87\'83\'93
-\f0 </div>\
-        <div class="opts" id="sessionOpts">\
-          <div class="opt sel" data-v="practice">Practice<small>
-\f1 \'8e\'fc\'89\'f1\'8e\'a9\'97\'52\'81\'45\'83\'5f\'83\'81\'81\'5b\'83\'57\'8c\'76\'91\'aa
-\f0 </small></div>\
-          <div class="opt" data-v="qualifying">Qualifying<small>
-\f1 \'83\'41\'83\'5e\'83\'62\'83\'4e
-\f0 1
-\f1 \'8e\'fc\'82\'cc\'83\'78\'83\'58\'83\'67\'83\'5e\'83\'43\'83\'80
-\f0 </small></div>\
-          <div class="opt" data-v="sprint">Sprint<small>8
-\f1 \'8e\'fc\'83\'8c\'81\'5b\'83\'58
-\f0 </small></div>\
-          <div class="opt" data-v="gp">Grand Prix<small>15
-\f1 \'8e\'fc\'83\'8c\'81\'5b\'83\'58
-\f0 </small></div>\
-        </div>\
-      </div>\
-\
-      <div class="grp">\
-        <div class="grp-label">
-\f1 \'83\'5e\'83\'43\'83\'84\'83\'52\'83\'93\'83\'70\'83\'45\'83\'93\'83\'68
-\f0 </div>\
-        <div class="opts" id="tireOpts">\
-          <div class="opt" data-v="soft">SOFT<small>
-\f1 \'8d\'82\'83\'4f\'83\'8a\'83\'62\'83\'76
-\f0  / 
-\f1 \'96\'80\'96\'d5\'91\'e5
-\f0 </small></div>\
-          <div class="opt sel" data-v="medium">MEDIUM<small>
-\f1 \'83\'6f\'83\'89\'83\'93\'83\'58\'8c\'5e
-\f0 </small></div>\
-          <div class="opt" data-v="hard">HARD<small>
-\f1 \'92\'e1\'83\'4f\'83\'8a\'83\'62\'83\'76
-\f0  / 
-\f1 \'91\'cf\'8b\'76\'91\'e5
-\f0 </small></div>\
-        </div>\
-      </div>\
-\
-      <div class="grp">\
-        <div class="grp-label">
-\f1 \'93\'56\'8c\'f3
-\f0 </div>\
-        <div class="opts" id="weatherOpts">\
-          <div class="opt sel" data-v="clear">
-\f1 \'90\'b0\'82\'ea
-\f0 </div>\
-          <div class="opt" data-v="cloudy">
-\f1 \'93\'dc\'82\'e8
-\f0 </div>\
-          <div class="opt" data-v="rain">
-\f1 \'89\'4a
-\f0 </div>\
-          <div class="opt" data-v="storm">
-\f1 \'8d\'8b\'89\'4a
-\f0 </div>\
-          <div class="opt" data-v="random">
-\f1 \'83\'89\'83\'93\'83\'5f\'83\'80
-\f0 </div>\
-        </div>\
-      </div>\
-\
-      <div class="grp">\
-        <div class="grp-label">AI 
-\f1 \'93\'ef\'88\'d5\'93\'78
-\f0  / 
-\f1 \'91\'e4\'90\'94
-\f0 </div>\
-        <div class="opts" id="diffOpts">\
-          <div class="opt" data-v="easy">Easy</div>\
-          <div class="opt sel" data-v="normal">Normal</div>\
-          <div class="opt" data-v="hard">Hard</div>\
-          <div class="opt" data-v="expert">Expert</div>\
-          <div class="opt" data-v="legend">Legend</div>\
-        </div>\
-        <div class="opts" id="aiCountOpts" style="margin-top:8px;">\
-          <div class="opt" data-v="2">3
-\f1 \'91\'e4
-\f0 </div>\
-          <div class="opt sel" data-v="4">5
-\f1 \'91\'e4
-\f0 </div>\
-          <div class="opt" data-v="7">8
-\f1 \'91\'e4
-\f0 </div>\
-        </div>\
-      </div>\
-\
-      <div class="grp">\
-        <div class="grp-label">
-\f1 \'8e\'9e\'8a\'d4\'91\'d1
-\f0 </div>\
-        <div class="opts" id="todOpts">\
-          <div class="opt sel" data-v="day">
-\f1 \'83\'66\'83\'43\'83\'8c\'81\'5b\'83\'58
-\f0 </div>\
-          <div class="opt" data-v="night">
-\f1 \'83\'69\'83\'43\'83\'67\'83\'8c\'81\'5b\'83\'58
-\f0 </div>\
-        </div>\
-      </div>\
-\
-      <button id="goBtn">
-\f1 \'83\'4f\'83\'8a\'83\'62\'83\'68\'82\'c9\'8c\'fc\'82\'a9\'82\'a4
-\f0  
-\f2 \uc0\u9654 
-\f0 </button>\
-      <div class="hint">PC: W/
-\f2 \uc0\u8593 
-\f0  
-\f1 \'89\'c1\'91\'ac\'81\'45
-\f0 S/
-\f2 \uc0\u8595 
-\f0  
-\f1 \'83\'75\'83\'8c\'81\'5b\'83\'4c\'81\'45
-\f0 A/D 
-\f1 \'91\'80\'91\'c7\'81\'45
-\f0 Shift DRS
-\f1 \'81\'45
-\f0 Space 
-\f1 \'83\'6e\'83\'93\'83\'68\'83\'75\'83\'8c\'81\'5b\'83\'4c
-\f0  
-\f1 \'81\'5e
-\f0  
-\f1 \'83\'58\'83\'7d\'83\'7a
-\f0 : 
-\f1 \'89\'e6\'96\'ca\'89\'ba\'82\'cc\'83\'52\'83\'93\'83\'67\'83\'8d\'81\'5b\'83\'89\'81\'5b
-\f0 </div>\
-      <div class="hint" id="bestLapDisplay"></div>\
-    </div>\
-  </div>\
-\
-  <div id="hud" style="display:none;">\
-    <div class="flag-strip" id="flagStrip"></div>\
-    <div class="top-bar">\
-      <div style="display:flex;gap:8px;">\
-        <div class="panel" id="posLap">\
-          <div class="pos" id="posVal">1<span>/ 6</span></div>\
-          <div class="lap" id="lapVal">LAP 1/15</div>\
-        </div>\
-        <div class="panel" id="flagState">GREEN FLAG</div>\
-        <div class="panel" id="weatherBox"><span id="weatherIcon">
-\f1 \uc0\u9728 
-\f0 </span><span id="weatherLabel">CLEAR</span></div>\
-      </div>\
-      <div class="panel" id="timing">\
-        <div class="grp-label" style="margin-bottom:6px;">TIMING</div>\
-        <div class="row">LAST <b id="lastLap">--:--.---</b></div>\
-        <div class="row">BEST <b id="bestLap">--:--.---</b></div>\
-        <div class="row">GAP <b id="gapVal">--</b></div>\
-      </div>\
-    </div>\
-\
-    <div id="pitPrompt">PIT LANE \'97 
-\f1 \'91\'ac\'93\'78\'82\'f0\'97\'8e\'82\'c6\'82\'b5\'82\'c4\'82\'ad\'82\'be\'82\'b3\'82\'a2
-\f0 </div>\
-    <div id="msgCenter"><div class="big" id="msgBig"></div><div class="small" id="msgSmall"></div></div>\
-\
-    <div id="bottomHud">\
-      <div class="panel" id="statusStack">\
-        <div class="stat-row">DRS <span id="drsChip">STANDBY</span></div>\
-        <div class="stat-row">ERS <span id="ersChip">CHARGE</span></div>\
-        <div class="stat-row">TIRE <div class="barWrap"><div class="barFill tire" id="tireBar" style="width:100%"></div></div></div>\
-        <div class="stat-row">FUEL <div class="barWrap"><div class="barFill fuel" id="fuelBar" style="width:100%"></div></div></div>\
-        <div class="stat-row">COMPOUND <b id="compoundVal">M</b></div>\
-      </div>\
-\
-      <div class="panel" id="speedBlock">\
-        <div><div id="gearVal">N</div><div id="rpmBar"><div id="rpmFill"></div></div></div>\
-        <div><span id="speedVal">0</span><span id="speedUnit">km/h</span></div>\
-      </div>\
-\
-      <div class="panel" id="minimapWrap"><canvas id="minimap" width="160" height="160"></canvas></div>\
-    </div>\
-\
-    <div id="camList">\
-      <div class="camBtn on" data-c="chase">CHASE</div>\
-      <div class="camBtn" data-c="cockpit">COCKPIT</div>\
-      <div class="camBtn" data-c="tcam">T-CAM</div>\
-      <div class="camBtn" data-c="heli">HELI</div>\
-    </div>\
-\
-    <button id="pauseBtn">II PAUSE</button>\
-  </div>\
-\
-  <div id="touchControls">\
-    <div id="wheelZone"><div id="wheelBase"><div id="wheelStick"></div></div></div>\
-    <div class="tbtn" id="btnBrake">BRAKE</div>\
-    <div class="tbtn" id="btnAccel">GAS</div>\
-    <div class="tbtn" id="btnDrs">DRS</div>\
-  </div>\
-\
-  <div id="pauseMenu">\
-    <div class="box">\
-      <h2>PAUSED</h2>\
-      <button id="resumeBtn">
-\f1 \'8d\'c4\'8a\'4a\'82\'b7\'82\'e9
-\f0 </button>\
-      <button id="restartBtn">
-\f1 \'83\'5a\'83\'62\'83\'56\'83\'87\'83\'93\'82\'f0\'8d\'c4\'83\'58\'83\'5e\'81\'5b\'83\'67
-\f0 </button>\
-      <button id="quitBtn">
-\f1 \'83\'5e\'83\'43\'83\'67\'83\'8b\'82\'c9\'96\'df\'82\'e9
-\f0 </button>\
-    </div>\
-  </div>\
-</div>\
-\
-<script type="importmap">\
-\{\
-  "imports": \{\
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",\
-    "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"\
-  \}\
-\}\
-</script>\
-<script type="module" src="main.js"></script>\
-</body>\
-</html>}
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="txt">CIRCUIT LOADING…</div>
+  </div>
+
+  <div id="start" style="display:none;">
+    <div class="start-card">
+      <div class="brand"><span class="mark">APEX GRAND PRIX</span></div>
+      <h1>鈴鹿サーキット</h1>
+      <div class="sub">ブラウザだけで動く本格 F1 レーシングシミュレーター — コアバージョン</div>
+
+      <div class="grp">
+        <div class="grp-label">セッション</div>
+        <div class="opts" id="sessionOpts">
+          <div class="opt sel" data-v="practice">Practice<small>周回自由・ダメージ計測</small></div>
+          <div class="opt" data-v="qualifying">Qualifying<small>アタック1周のベストタイム</small></div>
+          <div class="opt" data-v="sprint">Sprint<small>8周レース</small></div>
+          <div class="opt" data-v="gp">Grand Prix<small>15周レース</small></div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label">タイヤコンパウンド</div>
+        <div class="opts" id="tireOpts">
+          <div class="opt" data-v="soft">SOFT<small>高グリップ / 摩耗大</small></div>
+          <div class="opt sel" data-v="medium">MEDIUM<small>バランス型</small></div>
+          <div class="opt" data-v="hard">HARD<small>低グリップ / 耐久大</small></div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label">天候</div>
+        <div class="opts" id="weatherOpts">
+          <div class="opt sel" data-v="clear">晴れ</div>
+          <div class="opt" data-v="cloudy">曇り</div>
+          <div class="opt" data-v="rain">雨</div>
+          <div class="opt" data-v="storm">豪雨</div>
+          <div class="opt" data-v="random">ランダム</div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label">AI 難易度 / 台数</div>
+        <div class="opts" id="diffOpts">
+          <div class="opt" data-v="easy">Easy</div>
+          <div class="opt sel" data-v="normal">Normal</div>
+          <div class="opt" data-v="hard">Hard</div>
+          <div class="opt" data-v="expert">Expert</div>
+          <div class="opt" data-v="legend">Legend</div>
+        </div>
+        <div class="opts" id="aiCountOpts" style="margin-top:8px;">
+          <div class="opt" data-v="2">3台</div>
+          <div class="opt sel" data-v="4">5台</div>
+          <div class="opt" data-v="7">8台</div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label">時間帯</div>
+        <div class="opts" id="todOpts">
+          <div class="opt sel" data-v="day">デイレース</div>
+          <div class="opt" data-v="night">ナイトレース</div>
+        </div>
+      </div>
+
+      <button id="goBtn">グリッドに向かう ▶</button>
+      <div class="hint">PC: W/↑ 加速・S/↓ ブレーキ・A/D 操舵・Shift DRS・Space ハンドブレーキ ／ スマホ: 画面下のコントローラー</div>
+      <div class="hint" id="bestLapDisplay"></div>
+    </div>
+  </div>
+
+  <div id="hud" style="display:none;">
+    <div class="flag-strip" id="flagStrip"></div>
+    <div class="top-bar">
+      <div style="display:flex;gap:8px;">
+        <div class="panel" id="posLap">
+          <div class="pos" id="posVal">1<span>/ 6</span></div>
+          <div class="lap" id="lapVal">LAP 1/15</div>
+        </div>
+        <div class="panel" id="flagState">GREEN FLAG</div>
+        <div class="panel" id="weatherBox"><span id="weatherIcon">☀</span><span id="weatherLabel">CLEAR</span></div>
+      </div>
+      <div class="panel" id="timing">
+        <div class="grp-label" style="margin-bottom:6px;">TIMING</div>
+        <div class="row">LAST <b id="lastLap">--:--.---</b></div>
+        <div class="row">BEST <b id="bestLap">--:--.---</b></div>
+        <div class="row">GAP <b id="gapVal">--</b></div>
+      </div>
+    </div>
+
+    <div id="pitPrompt">PIT LANE — 速度を落としてください</div>
+    <div id="msgCenter"><div class="big" id="msgBig"></div><div class="small" id="msgSmall"></div></div>
+
+    <div id="bottomHud">
+      <div class="panel" id="statusStack">
+        <div class="stat-row">DRS <span id="drsChip">STANDBY</span></div>
+        <div class="stat-row">ERS <span id="ersChip">CHARGE</span></div>
+        <div class="stat-row">TIRE <div class="barWrap"><div class="barFill tire" id="tireBar" style="width:100%"></div></div></div>
+        <div class="stat-row">FUEL <div class="barWrap"><div class="barFill fuel" id="fuelBar" style="width:100%"></div></div></div>
+        <div class="stat-row">COMPOUND <b id="compoundVal">M</b></div>
+      </div>
+
+      <div class="panel" id="speedBlock">
+        <div><div id="gearVal">N</div><div id="rpmBar"><div id="rpmFill"></div></div></div>
+        <div><span id="speedVal">0</span><span id="speedUnit">km/h</span></div>
+      </div>
+
+      <div class="panel" id="minimapWrap"><canvas id="minimap" width="160" height="160"></canvas></div>
+    </div>
+
+    <div id="camList">
+      <div class="camBtn on" data-c="chase">CHASE</div>
+      <div class="camBtn" data-c="cockpit">COCKPIT</div>
+      <div class="camBtn" data-c="tcam">T-CAM</div>
+      <div class="camBtn" data-c="heli">HELI</div>
+    </div>
+
+    <button id="pauseBtn">II PAUSE</button>
+  </div>
+
+  <div id="touchControls">
+    <div id="wheelZone"><div id="wheelBase"><div id="wheelStick"></div></div></div>
+    <div class="tbtn" id="btnBrake">BRAKE</div>
+    <div class="tbtn" id="btnAccel">GAS</div>
+    <div class="tbtn" id="btnDrs">DRS</div>
+  </div>
+
+  <div id="pauseMenu">
+    <div class="box">
+      <h2>PAUSED</h2>
+      <button id="resumeBtn">再開する</button>
+      <button id="restartBtn">セッションを再スタート</button>
+      <button id="quitBtn">タイトルに戻る</button>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+  }
+}
+</script>
+<script type="module" src="main.js"></script>
+</body>
+</html>
