@@ -53,6 +53,9 @@ function initThree() {
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 3000);
+  // 起動直後にコースが確実にフレームに入るよう、デフォルト(0,0,0)から動かしておく
+  camera.position.set(0, 45, -70);
+  camera.lookAt(0, 0, 0);
 
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -65,6 +68,8 @@ function initLights() {
   hemiLight = new THREE.HemisphereLight(0x9ec7ff, 0x2c5a2f, 0.55);
   scene.add(hemiLight);
   sunLight = new THREE.DirectionalLight(0xffffff, 1.4);
+  sunLight.position.set(120, 140, 60);
+  sunLight.target.position.set(0, 0, 0);
   sunLight.castShadow = true;
   sunLight.shadow.mapSize.set(2048, 2048);
   sunLight.shadow.camera.left = -120;
@@ -148,6 +153,7 @@ function setSky(weather, timeOfDay) {
     sunLight.position.set(120, 140, 60);
     sunLight.color.set(0xfff2df);
   }
+  sunLight.target.position.set(0, 0, 0);
   updateStadiumLights(timeOfDay === 'night');
   currentWeather = weather;
   updateRain(weather);
@@ -457,6 +463,17 @@ function triggerYellowFlag() {
 }
 
 const camTmp = new THREE.Vector3();
+function computeChaseTarget(mode) {
+  const body = playerCar.chassisBody;
+  const carPos = new THREE.Vector3(body.position.x, body.position.y, body.position.z);
+  const q = new THREE.Quaternion(body.quaternion.x, body.quaternion.y, body.quaternion.z, body.quaternion.w);
+  const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(q);
+  if (mode === 'cockpit') return carPos.clone().addScaledVector(forward, 0.3).addScaledVector(new THREE.Vector3(0, 1, 0), 0.75);
+  if (mode === 'tcam') return carPos.clone().addScaledVector(forward, 1.2).addScaledVector(new THREE.Vector3(0, 1, 0), 1.7);
+  if (mode === 'heli') return carPos.clone().addScaledVector(new THREE.Vector3(0, 1, 0), 32).addScaledVector(forward, -14);
+  return carPos.clone().addScaledVector(forward, -9).addScaledVector(new THREE.Vector3(0, 1, 0), 3.4);
+}
+
 function updateCamera(dt) {
   if (!playerCar) return;
   const body = playerCar.chassisBody;
@@ -579,12 +596,23 @@ function step() {
 
   if (yellowTimer > 0) { yellowTimer -= dt; if (yellowTimer <= 0) flagState = 'GREEN'; }
 
-  world.step(1 / 60, dt, 5);
-
+  // ① 先に入力とAIの意思決定を行い、エンジン力/ステア/ブレーキを設定する
   const input = getPlayerInput();
   playerCar.drsAllowed = playerCar.inDrsZone;
   playerCar.drsOpen = input.drsReq && playerCar.inDrsZone;
   applyDrive(playerCar, { throttle: input.throttle, brake: input.brake, steer: input.steer, handbrake: input.handbrake });
+
+  const aiCommands = aiCars.map((car, i) => {
+    const brain = aiBrains[i];
+    const cmd = updateAiDrive(brain, car, trackData, allCars, dt, currentWeather);
+    applyDrive(car, cmd);
+    return cmd;
+  });
+
+  // ② その後で物理ワールドを1ステップ進める(この順序が重要)
+  world.step(1 / 60, dt, 5);
+
+  // ③ 物理結果を見た目・状態に反映
   updateTireAndFuel(playerCar, dt, input.throttle, input.brake, Math.abs(input.steer));
   checkOffTrack(playerCar);
   syncCarVisual(playerCar, dt);
@@ -592,15 +620,13 @@ function step() {
   handlePitLogic(playerCar, dt);
 
   aiCars.forEach((car, i) => {
-    const brain = aiBrains[i];
-    const cmd = updateAiDrive(brain, car, trackData, allCars, dt, currentWeather);
-    applyDrive(car, cmd);
+    const cmd = aiCommands[i];
     updateTireAndFuel(car, dt, cmd.throttle, cmd.brake, Math.abs(cmd.steer));
     checkOffTrack(car);
     syncCarVisual(car, dt);
     updateLapProgress(car, dt, now);
     handlePitLogic(car, dt);
-    if (car.wantsPit && car.pit.servicing) { brain.hasPitted = true; car.wantsPit = false; }
+    if (car.wantsPit && car.pit.servicing) { aiBrains[i].hasPitted = true; car.wantsPit = false; }
   });
 
   handleCollisions(dt);
@@ -676,6 +702,10 @@ function startSession() {
   raceStartTime = performance.now();
   playerCar.lapStartTime = raceStartTime;
   aiCars.forEach(c => c.lapStartTime = raceStartTime);
+
+  // カメラをlerpで待たせず即座にスタート位置へスナップする
+  camera.position.copy(computeChaseTarget(cameraMode));
+  camera.lookAt(playerCar.chassisBody.position.x, playerCar.chassisBody.position.y + 1, playerCar.chassisBody.position.z);
 
   showMessage('LIGHTS OUT', settings.session === 'qualifying' ? 'アタックラップ開始!' : 'レーススタート!', 2500);
   running = true;
