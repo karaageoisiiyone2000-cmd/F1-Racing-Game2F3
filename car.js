@@ -118,7 +118,7 @@ export function createCar({ world, scene, teamColor = 0xe10600, number = '1', co
     indexForwardAxis: 2,
   });
 
-  const wheelOptions = {
+  const baseWheelOptions = {
     radius: WHEEL_RADIUS,
     directionLocal: new CANNON.Vec3(0, -1, 0),
     suspensionStiffness: 42,
@@ -129,7 +129,6 @@ export function createCar({ world, scene, teamColor = 0xe10600, number = '1', co
     maxSuspensionForce: 100000,
     rollInfluence: 0.02,
     axleLocal: new CANNON.Vec3(-1, 0, 0),
-    chassisConnectionPointLocal: new CANNON.Vec3(1, 0, 1),
     maxSuspensionTravel: 0.22,
     customSlidingRotationalSpeed: -34,
     useCustomSlidingRotationalSpeed: true,
@@ -142,9 +141,14 @@ export function createCar({ world, scene, teamColor = 0xe10600, number = '1', co
     [wx, -0.05, wzF], [-wx, -0.05, wzF],
     [wx, -0.05, wzR], [-wx, -0.05, wzR],
   ];
+  // 各ホイールごとに新しい Vec3 を生成して渡す(接続点の使い回しによる
+  // 事故を避けるための防御的な書き方)
   wheelPositions.forEach(p => {
-    wheelOptions.chassisConnectionPointLocal.set(p[0], p[1], p[2]);
-    vehicle.addWheel({ ...wheelOptions });
+    const options = {
+      ...baseWheelOptions,
+      chassisConnectionPointLocal: new CANNON.Vec3(p[0], p[1], p[2]),
+    };
+    vehicle.addWheel(options);
   });
   vehicle.addToWorld(world);
 
