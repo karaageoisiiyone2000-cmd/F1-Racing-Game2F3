@@ -128,7 +128,10 @@ export function buildTrackMesh(trackData) {
   geo.setIndex(indices);
   geo.computeVertexNormals();
 
-  const mat = new THREE.MeshStandardMaterial({ map: makeAsphaltTexture(), roughness: 0.95, metalness: 0.0 });
+  const mat = new THREE.MeshStandardMaterial({
+    map: makeAsphaltTexture(), roughness: 0.95, metalness: 0.0,
+    side: THREE.DoubleSide,
+  });
   mat.map.repeat.set(1, Math.round(trackData.length / 8));
   const mesh = new THREE.Mesh(geo, mat);
   mesh.receiveShadow = true;
@@ -171,7 +174,7 @@ export function buildCurbs(trackData) {
     geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvArr, 2));
     geo.setIndex(indices);
     geo.computeVertexNormals();
-    const mat = new THREE.MeshStandardMaterial({ map: curbTex, roughness: 0.8 });
+    const mat = new THREE.MeshStandardMaterial({ map: curbTex, roughness: 0.8, side: THREE.DoubleSide });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.receiveShadow = true;
     return mesh;
@@ -183,7 +186,7 @@ export function buildCurbs(trackData) {
 
 export function buildGround() {
   const geo = new THREE.PlaneGeometry(4000, 4000);
-  const mat = new THREE.MeshStandardMaterial({ map: makeGrassTexture(), roughness: 1 });
+  const mat = new THREE.MeshStandardMaterial({ map: makeGrassTexture(), roughness: 1, side: THREE.DoubleSide });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.rotation.x = -Math.PI / 2;
   mesh.position.y = -0.02;
@@ -301,7 +304,7 @@ export function buildSignage(trackData, drsStartIdx, finishIdx) {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(text, 256, 64);
     const tex = new THREE.CanvasTexture(c);
-    const mat = new THREE.MeshBasicMaterial({ map: tex });
+    const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
     const geo = new THREE.PlaneGeometry(8, 2);
     return new THREE.Mesh(geo, mat);
   }
@@ -356,7 +359,7 @@ export function buildPitLane(trackData) {
   geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geo.setIndex(indices);
   geo.computeVertexNormals();
-  const mat = new THREE.MeshStandardMaterial({ color: 0x3a3d42, roughness: 0.95 });
+  const mat = new THREE.MeshStandardMaterial({ color: 0x3a3d42, roughness: 0.95, side: THREE.DoubleSide });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.receiveShadow = true;
   group.add(mesh);
