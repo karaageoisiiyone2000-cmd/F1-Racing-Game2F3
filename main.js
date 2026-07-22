@@ -40,6 +40,34 @@ let qualiTimeLimit = 180;
 const keys = {};
 const touchState = { steer: 0, accel: false, brake: false, drs: false };
 
+let debugEl;
+function initDebugOverlay() {
+  debugEl = document.createElement('div');
+  debugEl.style.cssText =
+    'position:fixed;left:8px;top:60px;z-index:999;background:rgba(0,0,0,.78);' +
+    'color:#7CFC7C;font:11px/1.5 monospace;padding:8px 10px;white-space:pre;pointer-events:none;' +
+    'border:1px solid rgba(255,255,255,.2);max-width:320px;';
+  debugEl.textContent = 'debug: waiting for session start...';
+  document.body.appendChild(debugEl);
+}
+function updateDebugOverlay(input) {
+  if (!debugEl || !playerCar) return;
+  const v = playerCar.chassisBody.velocity;
+  let grounded = 0;
+  playerCar.vehicle.wheelInfos.forEach(w => {
+    if (w.raycastResult && w.raycastResult.hasHit) grounded++;
+  });
+  const ef2 = playerCar.vehicle.wheelInfos[2] ? playerCar.vehicle.wheelInfos[2].engineForce : NaN;
+  const ef3 = playerCar.vehicle.wheelInfos[3] ? playerCar.vehicle.wheelInfos[3].engineForce : NaN;
+  debugEl.textContent =
+    `[DEBUG] keys W:${!!(keys['KeyW']||keys['ArrowUp'])} A:${!!(keys['KeyA']||keys['ArrowLeft'])} S:${!!(keys['KeyS']||keys['ArrowDown'])} D:${!!(keys['KeyD']||keys['ArrowRight'])}\n` +
+    `input  throttle:${input.throttle.toFixed(2)} steer:${input.steer.toFixed(2)} brake:${input.brake.toFixed(2)}\n` +
+    `veloc  x:${v.x.toFixed(2)} y:${v.y.toFixed(2)} z:${v.z.toFixed(2)}\n` +
+    `wheelsGrounded: ${grounded}/4   engineForce(rearL/R): ${ef2.toFixed(0)} / ${ef3.toFixed(0)}\n` +
+    `chassisPos: ${playerCar.chassisBody.position.x.toFixed(1)}, ${playerCar.chassisBody.position.y.toFixed(1)}, ${playerCar.chassisBody.position.z.toFixed(1)}\n` +
+    `speedKmh: ${playerCar.speedKmh.toFixed(1)}`;
+}
+
 function initThree() {
   const canvas = document.getElementById('gl');
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -53,7 +81,6 @@ function initThree() {
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 3000);
-  // 起動直後にコースが確実にフレームに入るよう、デフォルト(0,0,0)から動かしておく
   camera.position.set(0, 45, -70);
   camera.lookAt(0, 0, 0);
 
@@ -249,6 +276,8 @@ function placeCarAtGrid(car, g) {
   car.chassisBody.velocity.set(0, 0, 0);
   car.chassisBody.angularVelocity.set(0, 0, 0);
   car.trackIndex = g.idx;
+  car.lastRawIndex = null;
+  car.unwrappedProgress = 0;
 }
 
 function clearCars() {
@@ -367,12 +396,13 @@ function checkOffTrack(car) {
   return offAmount;
 }
 
+// ラップ判定を「周回インデックスの累積(unwrap)」方式に変更。
+// スポーン地点(スタート/フィニッシュ直前)で誤って1周判定されるバグを修正。
 function updateLapProgress(car, dt, now) {
   const n = trackData.samples.length;
-  const prevIdx = car.trackIndex;
-  let best = -1, bestD = Infinity;
   const { samples } = trackData;
-  const searchStart = prevIdx || 0;
+  const searchStart = car.trackIndex || 0;
+  let best = -1, bestD = Infinity;
   for (let off = -50; off <= 50; off++) {
     const i = ((searchStart + off) % n + n) % n;
     const dx = samples[i].x - car.chassisBody.position.x;
@@ -380,21 +410,33 @@ function updateLapProgress(car, dt, now) {
     const d = dx * dx + dz * dz;
     if (d < bestD) { bestD = d; best = i; }
   }
-  const wrapped = prevIdx > n * 0.8 && best < n * 0.2;
-  if (wrapped) {
-    car.lap += 1;
+
+  if (car.lastRawIndex == null) {
+    car.lastRawIndex = best;
+    car.unwrappedProgress = best;
+  } else {
+    let delta = best - car.lastRawIndex;
+    if (delta > n / 2) delta -= n;
+    if (delta < -n / 2) delta += n;
+    car.unwrappedProgress += delta;
+    car.lastRawIndex = best;
+  }
+
+  const newLap = Math.floor(car.unwrappedProgress / n);
+  if (newLap > car.lap) {
+    car.lap = newLap;
     const lapTime = now - car.lapStartTime;
     car.lastLapTime = lapTime;
     if (!car.bestLapTime || lapTime < car.bestLapTime) car.bestLapTime = lapTime;
     car.lapStartTime = now;
   }
   car.trackIndex = best;
-  car.raceProgress = (car.lap + best / n) / totalLaps;
+  car.raceProgress = (car.unwrappedProgress / n) / totalLaps;
   car.inDrsZone = best >= drsZoneStartIdx && best <= drsZoneEndIdx;
 }
 
 function rankCars() {
-  const ranked = [...allCars].sort((a, b) => (b.lap + b.trackIndex / trackData.samples.length) - (a.lap + a.trackIndex / trackData.samples.length));
+  const ranked = [...allCars].sort((a, b) => (b.unwrappedProgress || 0) - (a.unwrappedProgress || 0));
   ranked.forEach((c, i) => { c.position = i + 1; });
   return ranked;
 }
@@ -568,8 +610,8 @@ function updateHud() {
   const myIdx = ranked.indexOf(playerCar);
   if (myIdx > 0) {
     const ahead = ranked[myIdx - 1];
-    const gapDist = ((ahead.lap + ahead.trackIndex / trackData.samples.length) - (playerCar.lap + playerCar.trackIndex / trackData.samples.length)) * trackData.length;
-    const gapTime = gapDist / Math.max(10, playerCar.speedKmh / 3.6);
+    const gapDist = ((ahead.unwrappedProgress || 0) - (playerCar.unwrappedProgress || 0)) * (trackData.length / trackData.samples.length);
+    const gapTime = Math.abs(gapDist) / Math.max(10, playerCar.speedKmh / 3.6);
     document.getElementById('gapVal').textContent = `-${gapTime.toFixed(1)}s`;
   } else {
     document.getElementById('gapVal').textContent = 'LEADER';
@@ -596,23 +638,22 @@ function step() {
 
   if (yellowTimer > 0) { yellowTimer -= dt; if (yellowTimer <= 0) flagState = 'GREEN'; }
 
-  // ① 先に入力とAIの意思決定を行い、エンジン力/ステア/ブレーキを設定する
   const input = getPlayerInput();
+  playerCar.chassisBody.wakeUp();
   playerCar.drsAllowed = playerCar.inDrsZone;
   playerCar.drsOpen = input.drsReq && playerCar.inDrsZone;
   applyDrive(playerCar, { throttle: input.throttle, brake: input.brake, steer: input.steer, handbrake: input.handbrake });
 
   const aiCommands = aiCars.map((car, i) => {
     const brain = aiBrains[i];
+    car.chassisBody.wakeUp();
     const cmd = updateAiDrive(brain, car, trackData, allCars, dt, currentWeather);
     applyDrive(car, cmd);
     return cmd;
   });
 
-  // ② その後で物理ワールドを1ステップ進める(この順序が重要)
   world.step(1 / 60, dt, 5);
 
-  // ③ 物理結果を見た目・状態に反映
   updateTireAndFuel(playerCar, dt, input.throttle, input.brake, Math.abs(input.steer));
   checkOffTrack(playerCar);
   syncCarVisual(playerCar, dt);
@@ -641,6 +682,7 @@ function step() {
 
   checkSessionEnd(now);
   updateHud();
+  updateDebugOverlay(input);
 
   renderer.render(scene, camera);
 }
@@ -703,7 +745,6 @@ function startSession() {
   playerCar.lapStartTime = raceStartTime;
   aiCars.forEach(c => c.lapStartTime = raceStartTime);
 
-  // カメラをlerpで待たせず即座にスタート位置へスナップする
   camera.position.copy(computeChaseTarget(cameraMode));
   camera.lookAt(playerCar.chassisBody.position.x, playerCar.chassisBody.position.y + 1, playerCar.chassisBody.position.z);
 
@@ -752,6 +793,7 @@ function boot() {
   buildCircuit();
   initInput();
   initStartUI();
+  initDebugOverlay();
   sound = new SoundEngine();
   window.addEventListener('pointerdown', () => sound && sound.start(), { once: true });
   window.addEventListener('touchstart', () => sound && sound.start(), { once: true });
